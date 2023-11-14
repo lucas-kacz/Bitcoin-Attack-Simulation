@@ -5,12 +5,15 @@ def mine_block(p):
     result = random.choices(miners, weights=[1-p, p])[0]
     return result
 
-#The first attack strategy is the 1+2 strategy
-def AttackStrategy_1(p, rounds):
+def egoistic_miner_strategy(p, rounds):
     honest_blocks_mined = 0
     attacker_blocks_mined = 0 
 
-    #A round is one full transition (return to state 0)
+    honest_rewards = 0
+    attacker_rewards = 0
+
+
+#A round is one full transition (return to state 0)
     for i in range(rounds):
         round_finished = False
         state = 0
@@ -32,7 +35,7 @@ def AttackStrategy_1(p, rounds):
                 case 1:
                     #If the honest block finds a block, there is a competition (state 0' (or 3))
                     if mine_block(p) == "honest":
-                        state = 3
+                        state = "competition"
 
                     #Else, the state goes to 2
                     else:
@@ -45,10 +48,9 @@ def AttackStrategy_1(p, rounds):
                         round_finished = True
                     #Else, the attacker publishes his version of the blockchain and earns 3 rewards (case A, A, A)
                     else:
-                        attacker_blocks_mined+=3
-                        round_finished = True
+                        state+=1
 
-                case 3:
+                case "competition":
                     #If the honest miner finds a block, he publishes 2 blocks and earns 2 rewards (case A, B, B)
                     if mine_block(p) == "honest":
                         honest_blocks_mined+=2
@@ -58,26 +60,14 @@ def AttackStrategy_1(p, rounds):
                         attacker_blocks_mined+=2
                         round_finished = True
 
+                case _:
+                    if mine_block(p) == "honest":
+                        state-=1
+                        attacker_blocks_mined+=1
+                    else:
+                        state+=1
+
     return (f"Honest Blocks Mined : {honest_blocks_mined}, Attacker Blocks Mined : {attacker_blocks_mined}, Probability of winning Attack : {attacker_blocks_mined/(honest_blocks_mined+attacker_blocks_mined)}")
 
 
-def theorical_result(p):
-    result = ((p**2)*(4-p))/(1+p+p**3)   
-    return result
-
-print(AttackStrategy_1(0.414, 5000))
-print(theorical_result(0.414))
-
-
-
-
-                
-
-                
-
-
-
-            
-
-
-
+print(egoistic_miner_strategy(0.45, 5000))
